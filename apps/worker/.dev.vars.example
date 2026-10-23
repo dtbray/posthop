@@ -1,0 +1,9 @@
+# Copy to .dev.vars. Never use these local settings on a public deployment.
+APP_ENV=local
+PROVIDER_MODE=mock
+DEV_AUTH_TOKEN=local-development-only
+# Live controlled tests additionally need:
+# SMTP2GO_API_KEY=
+# TEST_RECIPIENTS=your-controlled-inbox@example.com
+# SENDER_EMAIL=verified-sender@your-business.example
+# REPLY_TO=monitored@your-business.example

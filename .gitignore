@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+coverage/
+*.log
+
+.certs/
+apps/outlook-addin/manifest/manifest.generated.xml
+
+test-results/
+playwright-report/
