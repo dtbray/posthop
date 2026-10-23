@@ -5,6 +5,7 @@ import {
 } from "@azure/msal-browser";
 export interface Config {
   localMock: boolean;
+  providerMode: "mock" | "smtp2go";
   clientId: string;
   tenantId: string;
   scope: string;

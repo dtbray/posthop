@@ -70,3 +70,25 @@ test("attachments are rejected before any metadata write", async ({ page }) => {
   ).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("office-test-save-count"))).toBeNull();
 });
+
+test("authenticated mock mode is disclosed without enabling local auth bypass", async ({
+  page,
+}) => {
+  await mockOutlook(page);
+  await page.route("**/api/config", (route) =>
+    route.fulfill({
+      json: {
+        localMock: false,
+        providerMode: "mock",
+        clientId: "test-client",
+        tenantId: "test-tenant",
+        scope: "api://test-api/Mail.Send.External",
+      },
+    }),
+  );
+  await page.goto("/");
+  await expect(page.getByText("Mock delivery. No email will be delivered.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in to Microsoft" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Prepare Outlook draft" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Submit simulated message" })).toBeDisabled();
+});

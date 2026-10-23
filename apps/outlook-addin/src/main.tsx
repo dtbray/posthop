@@ -150,8 +150,12 @@ function App() {
           External sending leaves your Outlook draft open. It does not create an Exchange Sent Items
           copy. Do not also press Outlook’s Send button.
         </MessageBar>
-        {config?.localMock && (
-          <MessageBar intent="info">Local simulation. No email will be delivered.</MessageBar>
+        {config?.providerMode === "mock" && (
+          <MessageBar intent="info">
+            {config.localMock
+              ? "Local simulation. No email will be delivered."
+              : "Mock delivery. No email will be delivered."}
+          </MessageBar>
         )}
         {error && <MessageBar intent="error">{error}</MessageBar>}
         {config && !config.localMock && !sender && (
@@ -302,7 +306,7 @@ function App() {
               })
             }
           >
-            {config?.localMock ? "Submit simulated message" : "Send via SMTP2GO"}
+            {config?.providerMode === "mock" ? "Submit simulated message" : "Send via SMTP2GO"}
           </Button>
           {busy && <Spinner size="tiny" label="Working…" />}
           {batchId && (

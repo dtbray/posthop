@@ -47,6 +47,7 @@ async function api(request: Request, env: Env): Promise<Response> {
         env.APP_ENV === "local" &&
         env.PROVIDER_MODE === "mock" &&
         ["localhost", "127.0.0.1"].includes(url.hostname),
+      providerMode: env.PROVIDER_MODE,
       clientId: env.CLIENT_ID,
       tenantId: env.TENANT_ID,
       scope: `api://${env.API_AUDIENCE}/Mail.Send.External`,

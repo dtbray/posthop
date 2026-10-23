@@ -7,6 +7,7 @@ vi.mock("@azure/msal-browser", async (importOriginal) => ({
 }));
 const config = {
   localMock: false,
+  providerMode: "mock" as const,
   clientId: "frontend-client",
   tenantId: "test-tenant",
   scope: "api://backend/Mail.Send.External",

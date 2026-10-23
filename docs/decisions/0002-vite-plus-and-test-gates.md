@@ -16,7 +16,9 @@ Vite+ builds the static Outlook pane; Wrangler still builds and runs the Worker,
 
 ## Browser and authentication coverage
 
-A separate required `browser-tests` job installs Chromium and runs the existing CSV workflow plus Office compose callback/property/error/reopen scenarios. Browser tests use synthetic messages and mock delivery, with explicit Office stubs. NAA unit tests verify API scope, in-memory cache, interactive fallback, failure propagation and unsupported hosts. They do not establish that the real tenant, broker, manifest or consent setup works; that remains a distinct live integration gate.
+A separate required `browser-tests` job installs Chromium and runs the existing CSV workflow plus Office compose callback/property/error/reopen scenarios. A provider-mock notice is independent of the local authentication bypass, so a credentialed tenant test cannot be mistaken for live delivery. The development server uses a strict port and denies private configuration/certificate paths.
+
+Browser tests use synthetic messages and mock delivery, with explicit Office stubs. NAA unit tests verify API scope, in-memory cache, interactive fallback, failure propagation and unsupported hosts. They do not establish that the real tenant, broker, manifest or consent setup works; that remains a distinct live integration gate.
 
 PR #1's late Kilo review completed successfully, and its scan findings were resolved before this milestone. Socket's GitHub App is now installed by the owner; the credential-free install firewall stays enabled alongside it.
 

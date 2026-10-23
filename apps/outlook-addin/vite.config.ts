@@ -9,6 +9,20 @@ export default defineConfig({
   plugins: lazyPlugins(() => [react()]),
   server: {
     port: 3000,
+    strictPort: true,
+    fs: {
+      deny: [
+        "**/.env",
+        "**/.env.*",
+        "**/.dev.vars",
+        "**/.dev.vars.*",
+        "**/.certs/**",
+        "**/.azure/**",
+        "**/secrets/**",
+        "**/*.{key,pem,crt,pfx,p12}",
+        "**/.git/**",
+      ],
+    },
     host: "localhost",
     https: hasCertificates
       ? { cert: readFileSync(certFile), key: readFileSync(keyFile) }

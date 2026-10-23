@@ -14,7 +14,7 @@ Obtain a locally trusted certificate for `localhost` with your organization's ap
 pnpm dev:web
 ```
 
-Vite serves HTTPS on localhost:3000 when both project-local certificate files exist and proxies `/api` to the local Worker. Confirm the browser trusts https://localhost:3000 without bypassing certificate errors. The checked-in manifest points there. For a real Entra test, configure the registrations first and use mock provider mode with actual Entra auth (`APP_ENV=production` locally); do not use mock identity to validate SSO.
+Vite serves HTTPS on localhost:3000 when both project-local certificate files exist and proxies `/api` to the local Worker. Confirm the browser trusts https://localhost:3000 without bypassing certificate errors. The server uses a strict port to avoid silently serving a different origin. If that port is occupied, choose a free port explicitly (for example `pnpm dev:web --port 3001`), register that exact broker origin, and generate a matching manifest with `node scripts/manifest.mjs https://localhost:3001`. The checked-in manifest points there. For a real Entra test, configure the registrations first and use mock provider mode with actual Entra auth (`APP_ENV=production` locally); do not use mock identity to validate SSO.
 
 Sideload the add-in-only XML through https://aka.ms/olksideload → My add-ins → Add a custom add-in → Add from file. Select `apps/outlook-addin/manifest/manifest.xml`. Tenant policy may require the administrator to allow custom add-ins. Compose a new message, open Apps/add-ins from the compose ribbon, select Posthop. Ribbon locations can vary by Outlook version. [Official sideloading guide](https://learn.microsoft.com/en-us/office/dev/add-ins/outlook/sideload-outlook-add-ins-for-testing).
 
