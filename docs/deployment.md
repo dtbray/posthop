@@ -8,13 +8,13 @@ Follow README. `pnpm db:local` applies migrations to local emulation only. `pnpm
 
 ## Outlook HTTPS development
 
-Obtain a locally trusted certificate for `localhost` with your organization's approved tool (for example Microsoft's `office-addin-dev-certs`), including private key and certificate PEM files. Never commit the private key. Start Worker on loopback port 8787, then start the Vite frontend with:
+Obtain a locally trusted certificate for `localhost` with your organization's approved tool (for example Microsoft's `office-addin-dev-certs`), including private key and certificate PEM files. Place them at `.certs/localhost.key` and `.certs/localhost.crt` in the repository root (both ignored). Never commit the private key. Start Worker on loopback port 8787, then start the Vite frontend with:
 
 ```sh
-TLS_CERT_FILE=/absolute/path/localhost.crt TLS_KEY_FILE=/absolute/path/localhost.key pnpm dev:web
+pnpm dev:web
 ```
 
-Vite serves HTTPS on localhost:3000 when both variables exist and proxies `/api` to the local Worker. Confirm the browser trusts https://localhost:3000 without bypassing certificate errors. The checked-in manifest points there. For a real Entra test, configure the registrations first and use mock provider mode with actual Entra auth (`APP_ENV=production` locally); do not use mock identity to validate SSO.
+Vite serves HTTPS on localhost:3000 when both project-local certificate files exist and proxies `/api` to the local Worker. Confirm the browser trusts https://localhost:3000 without bypassing certificate errors. The checked-in manifest points there. For a real Entra test, configure the registrations first and use mock provider mode with actual Entra auth (`APP_ENV=production` locally); do not use mock identity to validate SSO.
 
 Sideload the add-in-only XML through https://aka.ms/olksideload → My add-ins → Add a custom add-in → Add from file. Select `apps/outlook-addin/manifest/manifest.xml`. Tenant policy may require the administrator to allow custom add-ins. Compose a new message, open Apps/add-ins from the compose ribbon, select Posthop. Ribbon locations can vary by Outlook version. [Official sideloading guide](https://learn.microsoft.com/en-us/office/dev/add-ins/outlook/sideload-outlook-add-ins-for-testing).
 

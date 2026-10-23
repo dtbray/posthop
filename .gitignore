@@ -13,3 +13,44 @@ apps/outlook-addin/manifest/manifest.generated.xml
 
 test-results/
 playwright-report/
+
+# Local credentials, credentials exports, signing and TLS material
+.dev.vars.*
+!.dev.vars.example
+.envrc
+secrets/
+secrets*.json
+credentials*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore
+
+# Local databases, exports and SQLite journal files
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.db
+*.db-*
+backups/
+
+# Build, release and scanner output
+artifacts/
+release-staging/
+*.tsbuildinfo
+.vite/
+.socket/
+.socket-cache/
+gitleaks-report.*
+*.sarif
+
+# Editor and OS state
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*~

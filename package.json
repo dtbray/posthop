@@ -18,7 +18,10 @@
     "test": "vitest run",
     "manifest:validate": "office-addin-manifest validate apps/outlook-addin/manifest/manifest.xml",
     "test:e2e": "playwright test",
-    "format": "prettier --write \"apps/**/src/**/*.{ts,tsx,css}\" \"apps/**/tests/**/*.ts\" \"packages/**/*.ts\" \"*.{json,ts,yaml}\" \"scripts/*.mjs\""
+    "format": "prettier --write \"apps/**/src/**/*.{ts,tsx,css}\" \"apps/**/tests/**/*.ts\" \"packages/**/*.ts\" \"*.{json,ts,yaml}\" \"scripts/*.mjs\"",
+    "release": "node scripts/release.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "release:package": "node scripts/release-package.mjs"
   },
   "dependencies": {
     "@azure/msal-browser": "^5.26.0",
@@ -40,12 +43,12 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "esbuild": "^0.25.0",
-    "miniflare": "^4.0.0",
-    "office-addin-manifest": "^2.0.0",
+    "miniflare": "5.20261019.2-beta",
+    "office-addin-manifest": "^3.0.1",
     "prettier": "^3.9.10",
     "typescript": "^5.9.0",
     "vite": "^7.0.0",
-    "vitest": "^3.2.0",
+    "vitest": "^5.0.5",
     "wrangler": "^4.152.0"
   }
 }

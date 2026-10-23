@@ -65,3 +65,5 @@ For frontend hot reload: keep the Worker running and run `pnpm dev:web`; browse 
 Start with [feasibility](docs/feasibility.md), [architecture decision](docs/decisions/0001-independent-mailer.md), [setup/configuration](docs/configuration.md), [Outlook test procedure](docs/testing.md), and [phased plan](docs/plan.md).
 
 Structure follows the specification: `apps/outlook-addin`, `apps/worker`, `packages/shared`, `packages/smtp2go`, `db/migrations`, `docs`. Dependencies are managed at the root to keep this small workspace simple.
+
+Repository maintenance: [security protections](docs/security.md), [security disclosure](SECURITY.md), and [tag-based release flow](docs/releasing.md).

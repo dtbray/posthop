@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/dtbray/posthop/security/advisories/new
+    about: Please keep undisclosed vulnerabilities and credentials out of public issues.
