@@ -72,8 +72,11 @@ async function verifyExisting() {
       `posthop-${version}.tar.gz`,
       "posthop-sbom.cdx.json",
       "release.json",
-    ].sort();
-    if (JSON.stringify(Object.keys(files).sort()) !== JSON.stringify(expected))
+    ].sort((a, b) => a.localeCompare(b));
+    if (
+      JSON.stringify(Object.keys(files).sort((a, b) => a.localeCompare(b))) !==
+      JSON.stringify(expected)
+    )
       throw new Error("Unexpected release assets");
     const metadata = JSON.parse(files["release.json"]);
     if (

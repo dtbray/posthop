@@ -8,21 +8,36 @@ import {
   rm,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, isAbsolute, basename } from "node:path";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { checkRelease } from "./release-check.mjs";
 import { sha256 } from "./release-lib.mjs";
-const tag = process.argv[2],
-  version = await checkRelease(tag);
-if (execFileSync("git", ["status", "--porcelain"], { encoding: "utf8" }).trim())
+const tag = process.argv[2];
+if (!/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(tag))
+  throw new Error("Expected vX.Y.Z tag");
+const version = await checkRelease(tag);
+// pnpm supplies its own CLI entrypoint; invoke it via the running Node binary,
+// rather than resolving a command from the current directory or PATH.
+const pnpmCli = process.env.npm_execpath;
+if (!pnpmCli || !isAbsolute(pnpmCli) || basename(pnpmCli) !== "pnpm.cjs")
+  throw new Error("Run packaging through pnpm release:package");
+if (
+  execFileSync("/usr/bin/git", ["status", "--porcelain"], {
+    encoding: "utf8",
+  }).trim()
+)
   throw new Error("Release packaging requires a clean committed checkout");
-const commit = execFileSync("git", ["rev-parse", "HEAD"], {
+const commit = execFileSync("/usr/bin/git", ["rev-parse", "HEAD"], {
   encoding: "utf8",
 }).trim();
-const tagged = execFileSync("git", ["rev-parse", `${tag}^{commit}`], {
-  encoding: "utf8",
-}).trim();
+const tagged = execFileSync(
+  "/usr/bin/git",
+  ["rev-parse", "--verify", "--end-of-options", `${tag}^{commit}`],
+  {
+    encoding: "utf8",
+  },
+).trim();
 if (commit !== tagged)
   throw new Error("Release build must use the exact tagged checkout");
 const out = "artifacts";
@@ -65,7 +80,7 @@ try {
     join(bundle, "release.json"),
     JSON.stringify(metadata, null, 2) + "\n",
   );
-  execFileSync("tar", [
+  execFileSync("/usr/bin/tar", [
     "-czf",
     join(process.cwd(), out, `posthop-${version}.tar.gz`),
     "-C",
@@ -73,16 +88,20 @@ try {
     "posthop",
   ]);
   const inventory = JSON.parse(
-    execFileSync("pnpm", ["licenses", "list", "--json"], {
-      encoding: "utf8",
-      maxBuffer: 20_000_000,
-    }),
+    execFileSync(
+      process.execPath,
+      ["--", pnpmCli, "licenses", "list", "--json"],
+      {
+        encoding: "utf8",
+        maxBuffer: 20_000_000,
+      },
+    ),
   );
   const components = new Map();
   for (const packages of Object.values(inventory))
     for (const pkg of packages)
       for (const v of pkg.versions) {
-        const purl = `pkg:npm/${pkg.name.replace("@", "%40")}@${v}`;
+        const purl = `pkg:npm/${pkg.name.replaceAll("@", "%40")}@${v}`;
         components.set(purl, {
           type: "library",
           "bom-ref": purl,

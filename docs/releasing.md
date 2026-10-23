@@ -17,7 +17,7 @@ Releases are deliberate maintainer actions. Adding this flow does not authorize 
 
 A pushed `vX.Y.Z` tag triggers `.github/workflows/release.yml`. Manual dispatch accepts **only an existing tag**, then checks out `refs/tags/<tag>` rather than the selected branch. The workflow repeats identity/test/audit/build gates and installs dependencies through Socket Firewall Free. No Cloudflare credential is available or needed.
 
-The packaging script verifies that HEAD is the exact tag commit and the checkout is clean. It creates:
+Packaging runs through `pnpm release:package <tag>` and uses the pnpm-provided CLI entrypoint plus fixed `/usr/bin/git` and `/usr/bin/tar` paths on the Linux release runner. The packaging script verifies that HEAD is the exact tag commit and the checkout is clean. It creates:
 
 - `posthop-X.Y.Z.tar.gz`: built static pane, Worker dry-run output, manifest template, migration/configuration/setup references, lockfile and license notices.
 - `posthop-sbom.cdx.json`: CycloneDX 1.6 inventory of installed runtime and build dependencies from pnpm's license inventory; not an assertion of bundle reachability or a fully resolved dependency-edge graph. No local installation paths are included.

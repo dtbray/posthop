@@ -60,7 +60,7 @@ jobs:
       - name: Package exact tagged assets, SBOM and checksums
         env:
           RELEASE_TAG: ${{ steps.tag.outputs.value }}
-        run: node scripts/release-package.mjs "$RELEASE_TAG"
+        run: pnpm release:package "$RELEASE_TAG"
       - name: Create draft GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
