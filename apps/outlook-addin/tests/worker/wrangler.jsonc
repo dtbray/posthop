@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../../node_modules/wrangler/config-schema.json",
+  "name": "posthop-browser-tests",
+  "main": "../../../worker/src/index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "../../dist", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "posthop-browser-tests",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "../../../../db/migrations",
+    },
+  ],
+  "queues": {
+    "producers": [{ "binding": "DELIVERIES", "queue": "posthop-browser-deliveries" }],
+    "consumers": [
+      { "queue": "posthop-browser-deliveries", "max_batch_size": 1, "max_concurrency": 1 },
+    ],
+  },
+  "vars": {
+    "APP_ENV": "local",
+    "PROVIDER_MODE": "mock",
+    "DEV_AUTH_TOKEN": "local-development-only",
+    "TENANT_ID": "",
+    "API_AUDIENCE": "",
+    "CLIENT_ID": "",
+    "ALLOWED_OBJECT_IDS": "",
+    "TEST_RECIPIENTS": "",
+    "SENDER_EMAIL": "instructions@example.com",
+    "SENDER_NAME": "Event team",
+    "REPLY_TO": "instructions@example.com",
+    "MAX_ATTEMPTS": "3",
+  },
+}

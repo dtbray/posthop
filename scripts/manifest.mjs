@@ -8,13 +8,8 @@ if (
   origin.search ||
   origin.hash
 )
-  throw new Error(
-    "Supply an HTTPS origin without a path, credentials, query or fragment",
-  );
-const source = await readFile(
-  "apps/outlook-addin/manifest/manifest.xml",
-  "utf8",
-);
+  throw new Error("Supply an HTTPS origin without a path, credentials, query or fragment");
+const source = await readFile("apps/outlook-addin/manifest/manifest.xml", "utf8");
 await writeFile(
   "apps/outlook-addin/manifest/manifest.generated.xml",
   source.replaceAll("https://localhost:3000", origin.origin),

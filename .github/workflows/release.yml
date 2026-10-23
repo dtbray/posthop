@@ -53,10 +53,9 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.tag.outputs.value }}
         run: node scripts/release-check.mjs "$RELEASE_TAG"
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm audit --audit-level high
-      - run: pnpm build
+      - run: pnpm verify:static
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
       - name: Package exact tagged assets, SBOM and checksums
         env:
           RELEASE_TAG: ${{ steps.tag.outputs.value }}

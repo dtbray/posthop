@@ -15,15 +15,11 @@ export async function readDraft(): Promise<Draft> {
     throw new Error("Open this add-in in a message compose window.");
   const [subject, html, text] = await Promise.all([
     new Promise<string>((yes, no) => item.subject.getAsync(result(yes, no))),
-    new Promise<string>((yes, no) =>
-      item.body.getAsync(Office.CoercionType.Html, result(yes, no)),
-    ),
-    new Promise<string>((yes, no) =>
-      item.body.getAsync(Office.CoercionType.Text, result(yes, no)),
-    ),
+    new Promise<string>((yes, no) => item.body.getAsync(Office.CoercionType.Html, result(yes, no))),
+    new Promise<string>((yes, no) => item.body.getAsync(Office.CoercionType.Text, result(yes, no))),
   ]);
-  const attachments = await new Promise<Office.AttachmentDetailsCompose[]>(
-    (yes, no) => item.getAttachmentsAsync(result(yes, no)),
+  const attachments = await new Promise<Office.AttachmentDetailsCompose[]>((yes, no) =>
+    item.getAttachmentsAsync(result(yes, no)),
   );
   if (attachments.length || /(?:src\s*=\s*["']?cid:)/i.test(html))
     throw new Error(

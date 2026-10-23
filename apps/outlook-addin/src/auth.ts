@@ -13,9 +13,7 @@ let client: IPublicClientApplication | undefined;
 export async function accessToken(config: Config): Promise<string> {
   if (config.localMock) return "local-development-only";
   if (!config.clientId || !config.tenantId)
-    throw new Error(
-      "Administrator must configure Microsoft Entra authentication.",
-    );
+    throw new Error("Administrator must configure Microsoft Entra authentication.");
   await Office.onReady();
   if (!Office.context.requirements.isSetSupported("NestedAppAuth", "1.1"))
     throw new Error(

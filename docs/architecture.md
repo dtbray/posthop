@@ -10,14 +10,14 @@ The compose snapshot includes HTML and Office-produced plain text. Preview HTML 
 
 ## Implemented states
 
-| Recipient | Batch processing state | Meaning |
-|---|---|---|
-| queued | submitted | D1 committed; queue trigger pending |
-| attempting | processing | Durable claim; provider call may have started |
-| deferred | processing | Definite rate limit; next retry has a durable due time |
-| provider_accepted | completed | SMTP2GO accepted processing; not proof of delivery |
-| rejected | completed_with_failures | Definite provider refusal or exhausted safe retries |
-| unknown | needs_review | Acceptance uncertain; automatic resend prohibited |
+| Recipient         | Batch processing state  | Meaning                                                |
+| ----------------- | ----------------------- | ------------------------------------------------------ |
+| queued            | submitted               | D1 committed; queue trigger pending                    |
+| attempting        | processing              | Durable claim; provider call may have started          |
+| deferred          | processing              | Definite rate limit; next retry has a durable due time |
+| provider_accepted | completed               | SMTP2GO accepted processing; not proof of delivery     |
+| rejected          | completed_with_failures | Definite provider refusal or exhausted safe retries    |
+| unknown           | needs_review            | Acceptance uncertain; automatic resend prohibited      |
 
 The batch status is derived from its single recipient; no redundant mutable batch-state column exists in phase 1. Delivery events table is reserved for phase 3 and remains unused. User/sending identity tables are reserved for a later admin path; current creator IDs are tenant+object ID claims and senders are server configuration.
 

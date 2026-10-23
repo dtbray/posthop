@@ -1,11 +1,5 @@
-import {
-  submissionSchema,
-  normalizeEmail,
-} from "../../../packages/shared/src/index";
-import {
-  MockProvider,
-  Smtp2goProvider,
-} from "../../../packages/smtp2go/src/index";
+import { submissionSchema, normalizeEmail } from "../../../packages/shared/src/index";
+import { MockProvider, Smtp2goProvider } from "../../../packages/smtp2go/src/index";
 import { authenticate, HttpError } from "./auth";
 
 type StoredRecipient = {
@@ -40,9 +34,7 @@ const json = (body: unknown, status = 200) =>
   });
 async function hash(value: string) {
   return Array.from(
-    new Uint8Array(
-      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)),
-    ),
+    new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value))),
     (b) => b.toString(16).padStart(2, "0"),
   ).join("");
 }
@@ -61,9 +53,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     });
   const user = await authenticate(request, env);
   if (url.pathname === "/api/senders" && request.method === "GET")
-    return json([
-      { id: "primary", email: env.SENDER_EMAIL, name: env.SENDER_NAME },
-    ]);
+    return json([{ id: "primary", email: env.SENDER_EMAIL, name: env.SENDER_NAME }]);
   if (url.pathname === "/api/batches" && request.method === "POST") {
     // Bound bytes even if Content-Length is missing or misleading.
     const reader = request.body?.getReader();
@@ -94,10 +84,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     }
     const parsed = submissionSchema.safeParse(body);
     if (!parsed.success)
-      throw new HttpError(
-        400,
-        "Check subject, content, sender, key and exactly one recipient",
-      );
+      throw new HttpError(400, "Check subject, content, sender, key and exactly one recipient");
     const input = parsed.data;
     const digest = await hash(JSON.stringify(input));
     const existing = await env.DB.prepare(
@@ -107,10 +94,7 @@ async function api(request: Request, env: Env): Promise<Response> {
       .first<{ id: string; payload_hash: string }>();
     if (existing) {
       if (existing.payload_hash !== digest)
-        throw new HttpError(
-          409,
-          "Submission key already used with different content",
-        );
+        throw new HttpError(409, "Submission key already used with different content");
       return json({ id: existing.id, duplicate: true }, 200);
     }
     if (env.PROVIDER_MODE !== "mock" && env.PROVIDER_MODE !== "smtp2go")
@@ -122,16 +106,10 @@ async function api(request: Request, env: Env): Promise<Response> {
     )
       throw new HttpError(503, "Sending identity is not configured");
     if (env.PROVIDER_MODE === "smtp2go") {
-      if (!env.SMTP2GO_API_KEY)
-        throw new HttpError(503, "Provider is not configured");
-      const allowed = env.TEST_RECIPIENTS.split(",").map((v) =>
-        normalizeEmail(v),
-      );
+      if (!env.SMTP2GO_API_KEY) throw new HttpError(503, "Provider is not configured");
+      const allowed = env.TEST_RECIPIENTS.split(",").map((v) => normalizeEmail(v));
       if (!allowed.includes(input.recipients[0].email))
-        throw new HttpError(
-          403,
-          "Prototype sends only to configured controlled test inboxes",
-        );
+        throw new HttpError(403, "Prototype sends only to configured controlled test inboxes");
     }
     const id = crypto.randomUUID(),
       recipientId = crypto.randomUUID();
@@ -156,12 +134,7 @@ async function api(request: Request, env: Env): Promise<Response> {
       ),
       env.DB.prepare(
         `INSERT INTO recipients (id,batch_id,email,personalization) SELECT ?,id,?,? FROM batches WHERE id=?`,
-      ).bind(
-        recipientId,
-        input.recipients[0].email,
-        JSON.stringify(input.recipients[0]),
-        id,
-      ),
+      ).bind(recipientId, input.recipients[0].email, JSON.stringify(input.recipients[0]), id),
     ]);
     const saved = await env.DB.prepare(
       "SELECT id,payload_hash FROM batches WHERE creator_id=? AND idempotency_key=?",
@@ -178,9 +151,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     }
     return json({ id: saved.id, duplicate: saved.id !== id }, 202);
   }
-  const submission = url.pathname.match(
-    /^\/api\/submissions\/([0-9a-f-]{36})$/,
-  );
+  const submission = url.pathname.match(/^\/api\/submissions\/([0-9a-f-]{36})$/);
   if (submission && request.method === "GET") {
     const saved = await env.DB.prepare(
       "SELECT id FROM batches WHERE creator_id=? AND idempotency_key=?",
@@ -191,9 +162,7 @@ async function api(request: Request, env: Env): Promise<Response> {
   }
   const match = url.pathname.match(/^\/api\/batches\/([0-9a-f-]{36})$/);
   if (match && request.method === "GET") {
-    const batch = await env.DB.prepare(
-      "SELECT * FROM batches WHERE id=? AND creator_id=?",
-    )
+    const batch = await env.DB.prepare("SELECT * FROM batches WHERE id=? AND creator_id=?")
       .bind(match[1], user)
       .first<StoredBatch>();
     if (!batch) throw new HttpError(404, "Batch not found");
@@ -242,9 +211,7 @@ export async function deliver(recipientId: string, env: Env) {
     !batch.mock &&
     (env.PROVIDER_MODE !== "smtp2go" ||
       !env.SMTP2GO_API_KEY ||
-      !env.TEST_RECIPIENTS.split(",")
-        .map(normalizeEmail)
-        .includes(claimed.email))
+      !env.TEST_RECIPIENTS.split(",").map(normalizeEmail).includes(claimed.email))
   ) {
     await env.DB.prepare(
       "UPDATE recipients SET state='rejected',last_error='Live test configuration unavailable',updated_at=datetime('now') WHERE id=?",
@@ -253,9 +220,7 @@ export async function deliver(recipientId: string, env: Env) {
       .run();
     return;
   }
-  const provider = batch.mock
-    ? new MockProvider()
-    : new Smtp2goProvider(env.SMTP2GO_API_KEY!);
+  const provider = batch.mock ? new MockProvider() : new Smtp2goProvider(env.SMTP2GO_API_KEY!);
   const result = await provider.send({
     recipient: claimed.email,
     sender: batch.sender_email,
@@ -267,8 +232,7 @@ export async function deliver(recipientId: string, env: Env) {
     batchId: batch.id,
     recipientId,
   });
-  const retry =
-    result.kind === "retry" && claimed.attempts < Number(env.MAX_ATTEMPTS);
+  const retry = result.kind === "retry" && claimed.attempts < Number(env.MAX_ATTEMPTS);
   const state =
     result.kind === "accepted"
       ? "provider_accepted"
@@ -293,8 +257,7 @@ export async function deliver(recipientId: string, env: Env) {
 export default {
   async fetch(request, env) {
     try {
-      if (new URL(request.url).pathname.startsWith("/api/"))
-        return await api(request, env);
+      if (new URL(request.url).pathname.startsWith("/api/")) return await api(request, env);
       return await env.ASSETS.fetch(request);
     } catch (error) {
       return json(
@@ -336,7 +299,6 @@ export default {
     const pending = await env.DB.prepare(
       "SELECT id FROM recipients WHERE state IN ('queued','deferred') AND next_attempt_at<=datetime('now') LIMIT 100",
     ).all<{ id: string }>();
-    for (const r of pending.results)
-      await env.DELIVERIES.send({ recipientId: r.id });
+    for (const r of pending.results) await env.DELIVERIES.send({ recipientId: r.id });
   },
 } satisfies ExportedHandler<Env>;

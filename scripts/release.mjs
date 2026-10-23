@@ -17,13 +17,10 @@ if (
   args.slice(1).some((a) => !allowed.has(a)) ||
   args.slice(1).filter((a) => allowed.has(a)).length > 1
 )
-  throw new Error(
-    "Usage: pnpm release X.Y.Z [--dry-run | --yes | --verify-existing]",
-  );
+  throw new Error("Usage: pnpm release X.Y.Z [--dry-run | --yes | --verify-existing]");
 const tag = value.startsWith("v") ? value : `v${value}`,
   version = releaseVersion(tag);
-const log = (message) =>
-  console.log(`[${new Date().toISOString()}] ${message}`);
+const log = (message) => console.log(`[${new Date().toISOString()}] ${message}`);
 function run(command, parameters, options = {}) {
   return execFileSync(command, parameters, {
     encoding: "utf8",
@@ -35,20 +32,10 @@ function run(command, parameters, options = {}) {
 const git = (...parameters) => run("git", parameters);
 const gh = (...parameters) => run("gh", [...parameters, "--repo", repo]);
 const remote = git("remote", "get-url", "origin");
-if (
-  !/^(?:git@github\.com:|https:\/\/github\.com\/)dtbray\/posthop(?:\.git)?$/.test(
-    remote,
-  )
-)
+if (!/^(?:git@github\.com:|https:\/\/github\.com\/)dtbray\/posthop(?:\.git)?$/.test(remote))
   throw new Error("origin must be dtbray/posthop on GitHub");
 function remoteTag() {
-  const lines = git(
-    "ls-remote",
-    "--tags",
-    "origin",
-    `refs/tags/${tag}`,
-    `refs/tags/${tag}^{}`,
-  )
+  const lines = git("ls-remote", "--tags", "origin", `refs/tags/${tag}`, `refs/tags/${tag}^{}`)
     .split("\n")
     .filter(Boolean)
     .map((line) => line.split(/\s+/));
@@ -57,9 +44,7 @@ function remoteTag() {
 async function verifyExisting() {
   const sha = remoteTag();
   if (!sha) throw new Error("Requested release tag does not exist on origin");
-  const release = JSON.parse(
-    gh("release", "view", tag, "--json", "tagName,isDraft"),
-  );
+  const release = JSON.parse(gh("release", "view", tag, "--json", "tagName,isDraft"));
   if (release.tagName !== tag) throw new Error("Release tag mismatch");
   const dir = await mkdtemp(join(tmpdir(), "posthop-verify-"));
   try {
@@ -68,11 +53,9 @@ async function verifyExisting() {
     for (const name of await readdir(dir))
       if (name !== "SHA256SUMS") files[name] = await readFile(join(dir, name));
     verifyChecksums(await readFile(join(dir, "SHA256SUMS"), "utf8"), files);
-    const expected = [
-      `posthop-${version}.tar.gz`,
-      "posthop-sbom.cdx.json",
-      "release.json",
-    ].sort((a, b) => a.localeCompare(b));
+    const expected = [`posthop-${version}.tar.gz`, "posthop-sbom.cdx.json", "release.json"].sort(
+      (a, b) => a.localeCompare(b),
+    );
     if (
       JSON.stringify(Object.keys(files).sort((a, b) => a.localeCompare(b))) !==
       JSON.stringify(expected)
@@ -101,14 +84,9 @@ await checkRelease(tag);
 const head = git("rev-parse", "HEAD"),
   problems = [];
 if (git("status", "--porcelain"))
-  problems.push(
-    "Working tree is not clean; commit the version bump and all release files first.",
-  );
-if (git("branch", "--show-current") !== "main")
-  problems.push("Releases must be made from main.");
-const remoteHead = git("ls-remote", "origin", "refs/heads/main").split(
-  /\s+/,
-)[0];
+  problems.push("Working tree is not clean; commit the version bump and all release files first.");
+if (git("branch", "--show-current") !== "main") problems.push("Releases must be made from main.");
+const remoteHead = git("ls-remote", "origin", "refs/heads/main").split(/\s+/)[0];
 if (remoteHead !== head) problems.push("HEAD must equal origin/main.");
 const refs = git("for-each-ref", "--format=%(refname)", "refs/tags");
 if (
@@ -118,26 +96,18 @@ if (
   problems.push("Existing local tag points to another commit.");
 const remoteSha = remoteTag();
 if (remoteSha && remoteSha !== head)
-  problems.push(
-    "Published tag points to another commit; it will never be moved.",
-  );
+  problems.push("Published tag points to another commit; it will never be moved.");
 for (const problem of problems) log(`PREFLIGHT: ${problem}`);
 log(
-  `Plan: verify clean main/version ${version}; run typecheck/tests/build/audit; create or verify ${tag}; push exact tag; watch Release; verify checksums. No deployment.`,
+  `Plan: verify clean main/version ${version}; run audit/static/unit/browser/build gates; create or verify ${tag}; push exact tag; watch Release; verify checksums. No deployment.`,
 );
 if (!args.includes("--yes")) {
   log("Dry run: no tag, workflow dispatch or GitHub Release mutation.");
   process.exit(0);
 }
 if (problems.length) throw new Error("Release preflight failed");
-for (const task of ["typecheck", "test", "build"]) {
-  log(`Running ${task}`);
-  run("pnpm", [task], { stdio: "inherit", timeout: 600_000 });
-}
-run("pnpm", ["audit", "--audit-level", "high"], {
-  stdio: "inherit",
-  timeout: 120_000,
-});
+log("Running shared verification gates");
+run("pnpm", ["verify"], { stdio: "inherit", timeout: 600_000 });
 const runs = JSON.parse(
   gh(
     "run",
@@ -155,14 +125,11 @@ const runs = JSON.parse(
   ),
 );
 if (runs[0]?.status !== "completed" || runs[0]?.conclusion !== "success")
-  throw new Error(
-    "The Check workflow must be successful for the exact main commit",
-  );
+  throw new Error("The Check workflow must be successful for the exact main commit");
 if (!refs.split("\n").some((line) => line === `refs/tags/${tag}`))
   git("tag", "-a", tag, "-m", `Posthop ${version}`);
 if (!remoteSha) git("push", "origin", `refs/tags/${tag}`);
-else
-  log("Remote tag already matches; resuming without re-tagging or redispatch.");
+else log("Remote tag already matches; resuming without re-tagging or redispatch.");
 const deadline = Date.now() + 30 * 60_000;
 let complete = false;
 while (Date.now() < deadline) {
@@ -198,10 +165,7 @@ while (Date.now() < deadline) {
   );
   await new Promise((resolve) => setTimeout(resolve, 15_000));
 }
-if (!complete)
-  throw new Error(
-    "Timed out waiting for Release; inspect GitHub before rerunning",
-  );
+if (!complete) throw new Error("Timed out waiting for Release; inspect GitHub before rerunning");
 await verifyExisting();
 log(
   `Release ${tag} verified. Publish its draft manually after reviewing the artifacts; deployment remains separate.`,

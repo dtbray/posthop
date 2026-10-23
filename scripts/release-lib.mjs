@@ -24,8 +24,7 @@ export function verifyChecksums(checksums, files) {
   const seen = new Set();
   for (const line of checksums.trim().split("\n")) {
     const match = line.match(/^([a-f0-9]{64})  ([A-Za-z0-9][A-Za-z0-9._-]*)$/);
-    if (!match || seen.has(match[2]))
-      throw new Error("Invalid or duplicate checksum entry");
+    if (!match || seen.has(match[2])) throw new Error("Invalid or duplicate checksum entry");
     const [, digest, name] = match;
     seen.add(name);
     if (!Object.hasOwn(files, name) || sha256(files[name]) !== digest)

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import {
   releaseVersion,
   manifestVersion,
@@ -14,18 +14,10 @@ describe("release identity and integrity gates", () => {
     for (const tag of ["main", "v01.2.3", "v1.2.3-rc.1", "v1.2.3;echo bad"])
       expect(() => releaseVersion(tag)).toThrow();
     expect(() =>
-      assertVersions(
-        "v1.2.3",
-        { root: { version: "1.2.2" } },
-        "<Version>1.2.3.0</Version>",
-      ),
+      assertVersions("v1.2.3", { root: { version: "1.2.2" } }, "<Version>1.2.3.0</Version>"),
     ).toThrow();
     expect(() =>
-      assertVersions(
-        "v1.2.3",
-        { root: { version: "1.2.3" } },
-        "<Version>1.2.2.0</Version>",
-      ),
+      assertVersions("v1.2.3", { root: { version: "1.2.3" } }, "<Version>1.2.2.0</Version>"),
     ).toThrow();
   });
   it("rejects changed, missing, extra, duplicate or path-traversal release assets", () => {
