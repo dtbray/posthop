@@ -158,8 +158,15 @@ function App() {
           </MessageBar>
         )}
         {error && <MessageBar intent="error">{error}</MessageBar>}
+        {config && !config.localMock && !inOutlook && (
+          <MessageBar intent="info">
+            This is the task pane preview. Open Posthop from an Outlook compose window to sign in
+            and read a draft.
+          </MessageBar>
+        )}
         {config && !config.localMock && !sender && (
           <Button
+            disabled={!inOutlook || busy}
             onClick={() =>
               void action(async () => {
                 const identities = await api<{ name: string; email: string }[]>("/api/senders");

@@ -16,7 +16,8 @@ beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
   vi.stubGlobal("Office", {
-    onReady: () => Promise.resolve(),
+    HostType: { Outlook: "Outlook" },
+    onReady: () => Promise.resolve({ host: "Outlook" }),
     context: { requirements: { isSetSupported: () => true } },
   });
   mocks.create.mockResolvedValue({
@@ -61,7 +62,8 @@ describe("NAA frontend authentication boundary", () => {
   });
   it("blocks unsupported hosts and missing app registration", async () => {
     vi.stubGlobal("Office", {
-      onReady: () => Promise.resolve(),
+      HostType: { Outlook: "Outlook" },
+      onReady: () => Promise.resolve({ host: "Outlook" }),
       context: { requirements: { isSetSupported: () => false } },
     });
     const { accessToken } = await import("../src/auth");
@@ -71,4 +73,14 @@ describe("NAA frontend authentication boundary", () => {
     );
     expect(mocks.create).not.toHaveBeenCalled();
   });
+});
+
+it("guides a standalone browser back to Outlook before starting auth", async () => {
+  vi.stubGlobal("Office", {
+    HostType: { Outlook: "Outlook" },
+    onReady: () => Promise.resolve({ host: null }),
+  });
+  const { accessToken } = await import("../src/auth");
+  await expect(accessToken(config)).rejects.toThrow("Outlook compose window");
+  expect(mocks.create).not.toHaveBeenCalled();
 });

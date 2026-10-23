@@ -15,7 +15,9 @@ export async function accessToken(config: Config): Promise<string> {
   if (config.localMock) return "local-development-only";
   if (!config.clientId || !config.tenantId)
     throw new Error("Administrator must configure Microsoft Entra authentication.");
-  await Office.onReady();
+  const host = await Office.onReady();
+  if (host.host !== Office.HostType.Outlook)
+    throw new Error("Open Posthop from an Outlook compose window to sign in.");
   if (!Office.context.requirements.isSetSupported("NestedAppAuth", "1.1"))
     throw new Error(
       "This Outlook/browser does not support nested app authentication. Use a supported Outlook on the web session.",

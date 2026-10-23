@@ -36,4 +36,4 @@ Bulk partial failures, atomic daily/monthly quotas, complete recipient-list corr
 
 ## Local validation record (2026-10-23)
 
-29 Vitest tests passed, including frontend NAA scope/cache/interaction and unsupported-host checks. Six Chromium workflows, static checks, static build/Worker dry run, and Microsoft XML manifest validation passed. Test data and mocked provider only. No live Outlook/Entra tenant integration or real SMTP2GO delivery was executed.
+30 Vitest tests passed, including frontend NAA scope/cache/interaction and unsupported-host and standalone-preview checks. Six Chromium workflows, static checks, static build/Worker dry run, and Microsoft XML manifest validation passed. Test data and mocked provider only. No live Outlook/Entra tenant integration or real SMTP2GO delivery was executed.
