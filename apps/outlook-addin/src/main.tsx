@@ -211,9 +211,15 @@ function App() {
               />
             </>
           )}
-          <Field label="Configured sender">
-            <Input value={sender} readOnly />
-          </Field>
+          <div>
+            <p>
+              <strong>Sending identity</strong>
+            </p>
+            <p>{sender || "Sign in from Outlook to load your configured sending address."}</p>
+            <p className="muted">
+              This address is configured by your administrator and must be verified with SMTP2GO.
+            </p>
+          </div>
         </section>
         <section>
           <h2>2. Choose a test recipient</h2>
