@@ -15,10 +15,13 @@ export async function accessToken(config: Config): Promise<string> {
   if (config.localMock) return "local-development-only";
   if (!config.clientId || !config.tenantId)
     throw new Error("Administrator must configure Microsoft Entra authentication.");
+  if (typeof Office === "undefined" || typeof Office.onReady !== "function")
+    throw new Error("The Outlook library is unavailable. Reopen Posthop from Outlook.");
   const host = await Office.onReady();
-  if (host.host !== Office.HostType.Outlook)
+  const outlookHost = Office.HostType?.Outlook;
+  if (outlookHost === undefined || host?.host !== outlookHost)
     throw new Error("Open Posthop from an Outlook compose window to sign in.");
-  if (!Office.context.requirements.isSetSupported("NestedAppAuth", "1.1"))
+  if (!Office.context?.requirements?.isSetSupported("NestedAppAuth", "1.1"))
     throw new Error(
       "This Outlook/browser does not support nested app authentication. Use a supported Outlook on the web session.",
     );

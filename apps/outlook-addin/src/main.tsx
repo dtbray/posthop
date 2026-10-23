@@ -84,21 +84,32 @@ function App() {
         ),
       10000,
     );
-    void Office.onReady().then(async (info) => {
+    if (typeof Office === "undefined" || typeof Office.onReady !== "function") {
       clearTimeout(timer);
-      if (info.host === Office.HostType.Outlook) {
-        setInOutlook(true);
-        try {
-          const p = await properties();
-          const saved: unknown = p.get("posthopSubmissionKey");
-          if (typeof saved === "string") {
-            setKey(saved);
+      setError("The Outlook library could not load. Check your connection and reopen Posthop.");
+      return () => clearTimeout(timer);
+    }
+    void Office.onReady()
+      .then(async (info) => {
+        clearTimeout(timer);
+        const outlookHost = Office.HostType?.Outlook;
+        if (outlookHost !== undefined && info?.host === outlookHost) {
+          setInOutlook(true);
+          try {
+            const p = await properties();
+            const saved: unknown = p.get("posthopSubmissionKey");
+            if (typeof saved === "string") {
+              setKey(saved);
+            }
+          } catch {
+            setError("Could not read draft tracking. Preparation must succeed before sending.");
           }
-        } catch {
-          setError("Could not read draft tracking. Preparation must succeed before sending.");
         }
-      }
-    });
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        setError("Outlook could not initialize. Reopen Posthop from a compose window.");
+      });
     return () => clearTimeout(timer);
   }, []);
   useEffect(() => {

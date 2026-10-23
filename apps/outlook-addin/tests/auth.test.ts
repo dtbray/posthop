@@ -75,12 +75,21 @@ describe("NAA frontend authentication boundary", () => {
   });
 });
 
-it("guides a standalone browser back to Outlook before starting auth", async () => {
-  vi.stubGlobal("Office", {
-    HostType: { Outlook: "Outlook" },
-    onReady: () => Promise.resolve({ host: null }),
-  });
+it.each([{ host: null }, undefined])(
+  "guides an incomplete standalone Office context back to Outlook: %j",
+  async (host) => {
+    vi.stubGlobal("Office", {
+      onReady: () => Promise.resolve(host),
+    });
+    const { accessToken } = await import("../src/auth");
+    await expect(accessToken(config)).rejects.toThrow("Outlook compose window");
+    expect(mocks.create).not.toHaveBeenCalled();
+  },
+);
+
+it("fails clearly when the Office script is unavailable", async () => {
+  vi.stubGlobal("Office", undefined);
   const { accessToken } = await import("../src/auth");
-  await expect(accessToken(config)).rejects.toThrow("Outlook compose window");
+  await expect(accessToken(config)).rejects.toThrow("Outlook library is unavailable");
   expect(mocks.create).not.toHaveBeenCalled();
 });

@@ -18,6 +18,8 @@ Vite serves HTTPS on localhost:3000 when both project-local certificate files ex
 
 Sideload the add-in-only XML through https://aka.ms/olksideload → My add-ins → Add a custom add-in → Add from file. Select `apps/outlook-addin/manifest/manifest.xml`. Tenant policy may require the administrator to allow custom add-ins. Compose a new message, open Apps/add-ins from the compose ribbon, select Posthop. Ribbon locations can vary by Outlook version. [Official sideloading guide](https://learn.microsoft.com/en-us/office/dev/add-ins/outlook/sideload-outlook-add-ins-for-testing).
 
+For a remote development machine, follow [SSH tunnel testing](ssh-local-testing.md) so the browser origin, development CA and Entra redirect stay aligned.
+
 ## Authorized HTTPS test deployment
 
 1. Review the production gaps in `docs/plan.md`; this release is controlled-test only.

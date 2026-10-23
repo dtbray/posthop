@@ -92,3 +92,26 @@ test("authenticated mock mode is disclosed without enabling local auth bypass", 
   await expect(page.getByRole("button", { name: "Prepare Outlook draft" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Submit simulated message" })).toBeDisabled();
 });
+
+test("a blocked Office script shows a recoverable error instead of crashing the preview", async ({
+  page,
+}) => {
+  await page.route("https://appsforoffice.microsoft.com/**", (route) => route.abort());
+  await page.route("**/api/config", (route) =>
+    route.fulfill({
+      json: {
+        localMock: false,
+        providerMode: "mock",
+        clientId: "test-client",
+        tenantId: "test-tenant",
+        scope: "api://test-api/Mail.Send.External",
+      },
+    }),
+  );
+  await page.goto("/");
+  await expect(
+    page.getByText("The Outlook library could not load. Check your connection and reopen Posthop."),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Send with confidence" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in to Microsoft" })).toBeDisabled();
+});
