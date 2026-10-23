@@ -60,17 +60,12 @@ export interface RecipientSource {
   recipients: { email: string; firstName?: string; lastName?: string }[];
 }
 export function parseRecipients(csv: string) {
-  const parsed = Papa.parse<Record<string, string>>(
-    csv.replace(/^\uFEFF/, ""),
-    {
-      header: true,
-      skipEmptyLines: "greedy",
-      transformHeader: (h) => h.trim().toLowerCase().replace(/[ -]+/g, "_"),
-    },
-  );
-  const errors = parsed.errors.map(
-    (e) => `Row ${(e.row ?? 0) + 2}: ${e.message}`,
-  );
+  const parsed = Papa.parse<Record<string, string>>(csv.replace(/^\uFEFF/, ""), {
+    header: true,
+    skipEmptyLines: "greedy",
+    transformHeader: (h) => h.trim().toLowerCase().replace(/[ -]+/g, "_"),
+  });
+  const errors = parsed.errors.map((e) => `Row ${(e.row ?? 0) + 2}: ${e.message}`);
   const fields = parsed.meta.fields ?? [];
   // Square Customer Directory exports use Email Address / Given Name / Family Name.
   const emailKey = ["email", "email_address"].find((k) => fields.includes(k));

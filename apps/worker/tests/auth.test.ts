@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeAll, describe, it, expect, vi } from "vite-plus/test";
 import { generateKeyPair, exportJWK, SignJWT } from "jose";
 import { authenticate } from "../src/auth";
 const tenant = "b264744e-e206-4b98-b3ce-94e4942ab7d4";
@@ -20,13 +20,11 @@ async function token(overrides: Record<string, unknown> = {}) {
   const jwk = await exportJWK(keys.publicKey);
   vi.stubGlobal(
     "fetch",
-    vi
-      .fn()
-      .mockResolvedValue(
-        Response.json({
-          keys: [{ ...jwk, kid: "key-1", alg: "RS256", use: "sig" }],
-        }),
-      ),
+    vi.fn().mockResolvedValue(
+      Response.json({
+        keys: [{ ...jwk, kid: "key-1", alg: "RS256", use: "sig" }],
+      }),
+    ),
   );
   return new SignJWT({
     tid: tenant,
@@ -48,9 +46,7 @@ const request = (bearer: string) =>
   });
 describe("real JWT verification", () => {
   it("accepts a signed authorized tenant API token", async () => {
-    expect(await authenticate(request(await token()), config)).toBe(
-      `${tenant}:staff-id`,
-    );
+    expect(await authenticate(request(await token()), config)).toBe(`${tenant}:staff-id`);
   });
   it.each([
     { oid: "someone-else" },
@@ -58,9 +54,9 @@ describe("real JWT verification", () => {
     { azp: "other-client" },
     { tid: "other-tenant" },
   ])("rejects forbidden claims %j", async (claims) => {
-    await expect(
-      authenticate(request(await token(claims)), config),
-    ).rejects.toMatchObject({ status: 403 });
+    await expect(authenticate(request(await token(claims)), config)).rejects.toMatchObject({
+      status: 403,
+    });
   });
   it("rejects a token with a changed payload/signature", async () => {
     const t = await token();

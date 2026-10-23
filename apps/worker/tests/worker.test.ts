@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, describe, it, expect } from "vite-plus/test";
 import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 import { build } from "esbuild";
 import { readFile } from "node:fs/promises";
@@ -40,9 +40,7 @@ beforeAll(async () => {
     }),
   );
   const db = await mf.getD1Database("DB");
-  const sql = (
-    await readFile("db/migrations/0001_initial.sql", "utf8")
-  ).replace(/--[^\n]*/g, "");
+  const sql = (await readFile("db/migrations/0001_initial.sql", "utf8")).replace(/--[^\n]*/g, "");
   for (const statement of sql
     .split(";")
     .map((s) => s.trim())
@@ -86,9 +84,7 @@ async function status(id: string) {
 }
 describe("Worker + real local D1 + queue", () => {
   it("rejects missing/bad authentication and forged sender/bulk submission", async () => {
-    expect(
-      (await mf.dispatchFetch("http://localhost/api/batches")).status,
-    ).toBe(401);
+    expect((await mf.dispatchFetch("http://localhost/api/batches")).status).toBe(401);
     expect((await submit(input(), "bad")).status).toBe(503);
     expect((await submit({ ...input(), senderId: "forged" })).status).toBe(400);
     expect(
@@ -119,9 +115,7 @@ describe("Worker + real local D1 + queue", () => {
   });
   it("processes without browser polling, and duplicate queue messages do not resend", async () => {
     const id = await batchId(await submit(input()));
-    await expect
-      .poll(async () => (await status(id)).recipient.state)
-      .toBe("provider_accepted");
+    await expect.poll(async () => (await status(id)).recipient.state).toBe("provider_accepted");
     const db = await mf.getD1Database("DB");
     const row = await db
       .prepare("SELECT id FROM recipients WHERE batch_id=?")
@@ -136,10 +130,7 @@ describe("Worker + real local D1 + queue", () => {
   it("does not expose another creator’s batch", async () => {
     const id = await batchId(await submit(input()));
     const db = await mf.getD1Database("DB");
-    await db
-      .prepare("UPDATE batches SET creator_id='someone-else' WHERE id=?")
-      .bind(id)
-      .run();
+    await db.prepare("UPDATE batches SET creator_id='someone-else' WHERE id=?").bind(id).run();
     expect(
       (
         await mf.dispatchFetch(`http://localhost/api/batches/${id}`, {
@@ -150,9 +141,7 @@ describe("Worker + real local D1 + queue", () => {
   });
   it("repairs queued work after enqueue failure and quarantines interrupted sends", async () => {
     const id = await batchId(await submit(input()));
-    await expect
-      .poll(async () => (await status(id)).recipient.state)
-      .toBe("provider_accepted");
+    await expect.poll(async () => (await status(id)).recipient.state).toBe("provider_accepted");
     const db = await mf.getD1Database("DB");
     await db
       .prepare(
@@ -161,9 +150,7 @@ describe("Worker + real local D1 + queue", () => {
       .bind(id)
       .run();
     await mf.dispatchFetch("http://localhost/test/recover");
-    await expect
-      .poll(async () => (await status(id)).recipient.state)
-      .toBe("provider_accepted");
+    await expect.poll(async () => (await status(id)).recipient.state).toBe("provider_accepted");
     await db
       .prepare(
         "UPDATE recipients SET state='attempting',updated_at=datetime('now','-10 minutes') WHERE batch_id=?",

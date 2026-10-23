@@ -1,21 +1,21 @@
 # Configuration and unresolved access
 
-No service accounts or business credentials are present. Local simulation works without them.
+Local simulation needs no business credentials. Live integration settings belong in the ignored local `.dev.vars` file or Cloudflare secrets; never commit tenant-specific test configuration or API keys.
 
-| Setting | Meaning |
-|---|---|
-| APP_ENV | `production` by default; `local` only for loopback mock development |
-| PROVIDER_MODE | `mock` or `smtp2go`; never change a persisted mock batch into live mail |
-| TENANT_ID | Business Entra directory UUID |
-| API_AUDIENCE | API app registration client UUID; access token `aud`, without `api://` |
-| CLIENT_ID | Add-in SPA app registration client UUID; must match token `azp` |
-| ALLOWED_OBJECT_IDS | Comma-separated authorized staff Entra object UUIDs |
-| SENDER_EMAIL / SENDER_NAME | Configured provider-verified sending identity |
-| REPLY_TO | Monitored business mailbox |
-| TEST_RECIPIENTS | Comma-separated controlled inboxes; mandatory for live prototype sends |
-| MAX_ATTEMPTS | Maximum safe rate-limit attempts, default 3 |
-| SMTP2GO_API_KEY | Worker secret only; needed for live controlled tests |
-| DEV_AUTH_TOKEN | Local mock token; `.dev.vars.example` matches the browser demo |
+| Setting                    | Meaning                                                                 |
+| -------------------------- | ----------------------------------------------------------------------- |
+| APP_ENV                    | `production` by default; `local` only for loopback mock development     |
+| PROVIDER_MODE              | `mock` or `smtp2go`; never change a persisted mock batch into live mail |
+| TENANT_ID                  | Business Entra directory UUID                                           |
+| API_AUDIENCE               | API app registration client UUID; access token `aud`, without `api://`  |
+| CLIENT_ID                  | Add-in SPA app registration client UUID; must match token `azp`         |
+| ALLOWED_OBJECT_IDS         | Comma-separated authorized staff Entra object UUIDs                     |
+| SENDER_EMAIL / SENDER_NAME | Configured provider-verified sending identity                           |
+| REPLY_TO                   | Monitored business mailbox                                              |
+| TEST_RECIPIENTS            | Comma-separated controlled inboxes; mandatory for live prototype sends  |
+| MAX_ATTEMPTS               | Maximum safe rate-limit attempts, default 3                             |
+| SMTP2GO_API_KEY            | Worker secret only; needed for live controlled tests                    |
+| DEV_AUTH_TOKEN             | Local mock token; `.dev.vars.example` matches the browser demo          |
 
 ## Entra boundary (requires tenant administrator)
 

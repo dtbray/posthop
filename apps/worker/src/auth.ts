@@ -20,9 +20,7 @@ export async function authenticate(
     | "ALLOWED_OBJECT_IDS"
   >,
 ): Promise<string> {
-  const token = request.headers
-    .get("authorization")
-    ?.match(/^Bearer (.+)$/)?.[1];
+  const token = request.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1];
   if (!token) throw new HttpError(401, "Sign in required");
   const hostname = new URL(request.url).hostname;
   if (
@@ -33,18 +31,12 @@ export async function authenticate(
     token === env.DEV_AUTH_TOKEN
   )
     return "local-test-user";
-  if (
-    !/^[0-9a-f-]{36}$/i.test(env.TENANT_ID) ||
-    !env.API_AUDIENCE ||
-    !env.CLIENT_ID
-  )
+  if (!/^[0-9a-f-]{36}$/i.test(env.TENANT_ID) || !env.API_AUDIENCE || !env.CLIENT_ID)
     throw new HttpError(503, "Entra authentication is not configured");
   try {
     const issuer = `https://login.microsoftonline.com/${env.TENANT_ID}/v2.0`;
     const jwks = createRemoteJWKSet(
-      new URL(
-        `https://login.microsoftonline.com/${env.TENANT_ID}/discovery/v2.0/keys`,
-      ),
+      new URL(`https://login.microsoftonline.com/${env.TENANT_ID}/discovery/v2.0/keys`),
     );
     const { payload } = await jwtVerify(token, jwks, {
       issuer,

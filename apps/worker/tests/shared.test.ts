@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 import {
   normalizeEmail,
   parseRecipients,
@@ -17,18 +17,16 @@ describe("recipient import", () => {
   });
   it("accepts common Square Customer Directory headers", () => {
     expect(
-      parseRecipients(
-        "Email Address,Given Name,Family Name\r\na@example.com,A,B",
-      ).recipients[0],
+      parseRecipients("Email Address,Given Name,Family Name\r\na@example.com,A,B").recipients[0],
     ).toEqual({ email: "a@example.com", firstName: "A", lastName: "B" });
   });
   it("reports malformed CSV, missing columns and missing addresses", () => {
     expect(parseRecipients("name\nJane").errors).toContain(
       "Missing email or Email Address column.",
     );
-    expect(
-      parseRecipients('email,first_name\n"a@example.com,Jane').errors.length,
-    ).toBeGreaterThan(0);
+    expect(parseRecipients('email,first_name\n"a@example.com,Jane').errors.length).toBeGreaterThan(
+      0,
+    );
     expect(parseRecipients("email,first_name\n,Jane").errors).toHaveLength(1);
   });
   it("does not collapse plus addressing or accept header injection", () => {

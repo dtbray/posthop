@@ -1,12 +1,4 @@
-import {
-  mkdtemp,
-  mkdir,
-  cp,
-  writeFile,
-  readFile,
-  readdir,
-  rm,
-} from "node:fs/promises";
+import { mkdtemp, mkdir, cp, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, isAbsolute, basename } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -38,14 +30,11 @@ const tagged = execFileSync(
     encoding: "utf8",
   },
 ).trim();
-if (commit !== tagged)
-  throw new Error("Release build must use the exact tagged checkout");
+if (commit !== tagged) throw new Error("Release build must use the exact tagged checkout");
 const out = "artifacts";
 await mkdir(out, { recursive: true });
 if ((await readdir(out)).length)
-  throw new Error(
-    "artifacts directory must be empty; never overwrite release output",
-  );
+  throw new Error("artifacts directory must be empty; never overwrite release output");
 const staging = await mkdtemp(join(tmpdir(), "posthop-release-"));
 try {
   const bundle = join(staging, "posthop");
@@ -76,10 +65,7 @@ try {
       "Cloudflare Worker dry-run output + static assets + manifest template; operator configuration required",
     deployed: false,
   };
-  await writeFile(
-    join(bundle, "release.json"),
-    JSON.stringify(metadata, null, 2) + "\n",
-  );
+  await writeFile(join(bundle, "release.json"), JSON.stringify(metadata, null, 2) + "\n");
   execFileSync("/usr/bin/tar", [
     "-czf",
     join(process.cwd(), out, `posthop-${version}.tar.gz`),
@@ -88,14 +74,10 @@ try {
     "posthop",
   ]);
   const inventory = JSON.parse(
-    execFileSync(
-      process.execPath,
-      ["--", pnpmCli, "licenses", "list", "--json"],
-      {
-        encoding: "utf8",
-        maxBuffer: 20_000_000,
-      },
-    ),
+    execFileSync(process.execPath, ["--", pnpmCli, "licenses", "list", "--json"], {
+      encoding: "utf8",
+      maxBuffer: 20_000_000,
+    }),
   );
   const components = new Map();
   for (const packages of Object.values(inventory))
@@ -119,22 +101,13 @@ try {
       timestamp: new Date().toISOString(),
       component: { type: "application", name: "posthop", version },
     },
-    components: [...components.values()].sort((a, b) =>
-      a.purl.localeCompare(b.purl),
-    ),
+    components: [...components.values()].sort((a, b) => a.purl.localeCompare(b.purl)),
   };
-  await writeFile(
-    join(out, "posthop-sbom.cdx.json"),
-    JSON.stringify(bom, null, 2) + "\n",
-  );
-  await writeFile(
-    join(out, "release.json"),
-    JSON.stringify(metadata, null, 2) + "\n",
-  );
+  await writeFile(join(out, "posthop-sbom.cdx.json"), JSON.stringify(bom, null, 2) + "\n");
+  await writeFile(join(out, "release.json"), JSON.stringify(metadata, null, 2) + "\n");
   const names = (await readdir(out)).sort();
   const lines = [];
-  for (const name of names)
-    lines.push(`${sha256(await readFile(join(out, name)))}  ${name}`);
+  for (const name of names) lines.push(`${sha256(await readFile(join(out, name)))}  ${name}`);
   await writeFile(join(out, "SHA256SUMS"), lines.join("\n") + "\n");
   console.log(
     `Packaged ${tag} at ${commit}. SBOM inventories installed runtime/build dependencies; it is not a complete runtime bundle reachability graph.`,

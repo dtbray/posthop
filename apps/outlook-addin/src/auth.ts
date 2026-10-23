@@ -5,6 +5,7 @@ import {
 } from "@azure/msal-browser";
 export interface Config {
   localMock: boolean;
+  providerMode: "mock" | "smtp2go";
   clientId: string;
   tenantId: string;
   scope: string;
@@ -13,11 +14,14 @@ let client: IPublicClientApplication | undefined;
 export async function accessToken(config: Config): Promise<string> {
   if (config.localMock) return "local-development-only";
   if (!config.clientId || !config.tenantId)
-    throw new Error(
-      "Administrator must configure Microsoft Entra authentication.",
-    );
-  await Office.onReady();
-  if (!Office.context.requirements.isSetSupported("NestedAppAuth", "1.1"))
+    throw new Error("Administrator must configure Microsoft Entra authentication.");
+  if (typeof Office === "undefined" || typeof Office.onReady !== "function")
+    throw new Error("The Outlook library is unavailable. Reopen Posthop from Outlook.");
+  const host = await Office.onReady();
+  const outlookHost = Office.HostType?.Outlook;
+  if (outlookHost === undefined || host?.host !== outlookHost)
+    throw new Error("Open Posthop from an Outlook compose window to sign in.");
+  if (!Office.context?.requirements?.isSetSupported("NestedAppAuth", "1.1"))
     throw new Error(
       "This Outlook/browser does not support nested app authentication. Use a supported Outlook on the web session.",
     );

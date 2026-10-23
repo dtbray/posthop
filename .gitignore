@@ -54,3 +54,4 @@ gitleaks-report.*
 .DS_Store
 Thumbs.db
 *~
+.vitest/

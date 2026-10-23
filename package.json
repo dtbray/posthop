@@ -1,27 +1,28 @@
 {
   "name": "posthop",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.34.7",
-  "engines": {
-    "node": ">=22.12"
-  },
   "scripts": {
     "dev": "pnpm build:web && pnpm --dir apps/worker exec wrangler dev --local --port 8787",
-    "dev:web": "pnpm --dir apps/outlook-addin exec vite",
-    "build:web": "pnpm --dir apps/outlook-addin exec vite build",
+    "dev:web": "pnpm --dir apps/outlook-addin exec vp dev",
+    "build:web": "pnpm --dir apps/outlook-addin exec vp build",
     "build": "pnpm build:web && pnpm --dir apps/worker exec wrangler deploy --dry-run --outdir dist",
     "db:local": "pnpm --dir apps/worker exec wrangler d1 migrations apply posthop --local",
     "types": "pnpm --dir apps/worker exec wrangler types --env-interface CloudflareBindings --strict-vars false",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vp test run",
     "manifest:validate": "office-addin-manifest validate apps/outlook-addin/manifest/manifest.xml",
     "test:e2e": "playwright test",
-    "format": "prettier --write \"apps/**/src/**/*.{ts,tsx,css}\" \"apps/**/tests/**/*.ts\" \"packages/**/*.ts\" \"*.{json,ts,yaml}\" \"scripts/*.mjs\"",
+    "format": "vp fmt",
     "release": "node scripts/release.mjs",
     "release:check": "node scripts/release-check.mjs",
-    "release:package": "node scripts/release-package.mjs"
+    "release:package": "node scripts/release-package.mjs",
+    "check": "vp check --deny-warnings",
+    "lint": "vp lint --deny-warnings",
+    "format:check": "vp fmt --check",
+    "verify": "pnpm verify:static && pnpm test:e2e",
+    "verify:static": "pnpm audit --audit-level high && pnpm check && pnpm test && pnpm build"
   },
   "dependencies": {
     "@azure/msal-browser": "^5.26.0",
@@ -42,13 +43,16 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.2",
     "miniflare": "5.20261019.2-beta",
     "office-addin-manifest": "^3.0.1",
-    "prettier": "^3.9.10",
     "typescript": "^5.9.0",
-    "vite": "^7.0.0",
-    "vitest": "^5.0.5",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
     "wrangler": "^4.152.0"
-  }
+  },
+  "engines": {
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
+  },
+  "packageManager": "pnpm@10.34.7"
 }

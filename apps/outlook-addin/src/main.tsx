@@ -84,30 +84,38 @@ function App() {
         ),
       10000,
     );
-    void Office.onReady().then(async (info) => {
+    if (typeof Office === "undefined" || typeof Office.onReady !== "function") {
       clearTimeout(timer);
-      if (info.host === Office.HostType.Outlook) {
-        setInOutlook(true);
-        try {
-          const p = await properties();
-          const saved: unknown = p.get("posthopSubmissionKey");
-          if (typeof saved === "string") {
-            setKey(saved);
+      setError("The Outlook library could not load. Check your connection and reopen Posthop.");
+      return () => clearTimeout(timer);
+    }
+    void Office.onReady()
+      .then(async (info) => {
+        clearTimeout(timer);
+        const outlookHost = Office.HostType?.Outlook;
+        if (outlookHost !== undefined && info?.host === outlookHost) {
+          setInOutlook(true);
+          try {
+            const p = await properties();
+            const saved: unknown = p.get("posthopSubmissionKey");
+            if (typeof saved === "string") {
+              setKey(saved);
+            }
+          } catch {
+            setError("Could not read draft tracking. Preparation must succeed before sending.");
           }
-        } catch {
-          setError(
-            "Could not read draft tracking. Preparation must succeed before sending.",
-          );
         }
-      }
-    });
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        setError("Outlook could not initialize. Reopen Posthop from a compose window.");
+      });
     return () => clearTimeout(timer);
   }, []);
   useEffect(() => {
     if (!config?.localMock) return;
     void action(async () => {
-      const identities =
-        await api<{ name: string; email: string }[]>("/api/senders");
+      const identities = await api<{ name: string; email: string }[]>("/api/senders");
       setSender(`${identities[0].name} <${identities[0].email}>`);
     });
   }, [config]);
@@ -129,8 +137,7 @@ function App() {
         setKey(prepared.key);
       } else if (config?.localMock) {
         setDraft(sample);
-        const k =
-          localStorage.getItem("posthop-demo-key") ?? crypto.randomUUID();
+        const k = localStorage.getItem("posthop-demo-key") ?? crypto.randomUUID();
         localStorage.setItem("posthop-demo-key", k);
         setKey(k);
       } else throw new Error("Open the task pane from Outlook compose.");
@@ -151,21 +158,29 @@ function App() {
           <p>Compose in Outlook. Submit through SMTP2GO.</p>
         </header>
         <MessageBar intent="warning">
-          External sending leaves your Outlook draft open. It does not create an
-          Exchange Sent Items copy. Do not also press Outlook’s Send button.
+          External sending leaves your Outlook draft open. It does not create an Exchange Sent Items
+          copy. Do not also press Outlook’s Send button.
         </MessageBar>
-        {config?.localMock && (
+        {config?.providerMode === "mock" && (
           <MessageBar intent="info">
-            Local simulation. No email will be delivered.
+            {config.localMock
+              ? "Local simulation. No email will be delivered."
+              : "Mock delivery. No email will be delivered."}
           </MessageBar>
         )}
         {error && <MessageBar intent="error">{error}</MessageBar>}
+        {config && !config.localMock && !inOutlook && (
+          <MessageBar intent="info">
+            This is the task pane preview. Open Posthop from an Outlook compose window to sign in
+            and read a draft.
+          </MessageBar>
+        )}
         {config && !config.localMock && !sender && (
           <Button
+            disabled={!inOutlook || busy}
             onClick={() =>
               void action(async () => {
-                const identities =
-                  await api<{ name: string; email: string }[]>("/api/senders");
+                const identities = await api<{ name: string; email: string }[]>("/api/senders");
                 setSender(`${identities[0].name} <${identities[0].email}>`);
               })
             }
@@ -176,14 +191,11 @@ function App() {
         <section>
           <h2>1. Prepare your message</h2>
           <p>
-            This button saves a submission tracking key in the draft’s add-in
-            properties. It does not change the subject or body. A prepared draft
-            keeps the same key when reopened.
+            This button saves a submission tracking key in the draft’s add-in properties. It does
+            not change the subject or body. A prepared draft keeps the same key when reopened.
           </p>
           <Button
-            disabled={
-              busy || !sender || !!batchId || (!inOutlook && !config?.localMock)
-            }
+            disabled={busy || !sender || !!batchId || (!inOutlook && !config?.localMock)}
             onClick={() => void prepare()}
           >
             Prepare {inOutlook ? "Outlook draft" : "sample draft"}
@@ -206,8 +218,8 @@ function App() {
         <section>
           <h2>2. Choose a test recipient</h2>
           <p>
-            One recipient per submission in this prototype. Live delivery is
-            restricted to the administrator’s test inbox allowlist.
+            One recipient per submission in this prototype. Live delivery is restricted to the
+            administrator’s test inbox allowlist.
           </p>
           <Field label="Recipient email">
             <Input
@@ -221,10 +233,7 @@ function App() {
           </Field>
           <details>
             <summary>Inspect a CSV export</summary>
-            <p>
-              Import and correct rows below. Bulk submission is planned for
-              phase 2.
-            </p>
+            <p>Import and correct rows below. Bulk submission is planned for phase 2.</p>
             <input
               type="file"
               accept=".csv,text/csv"
@@ -280,8 +289,8 @@ function App() {
         <section>
           <h2>3. Review and submit</h2>
           <p>
-            Estimated messages: {normalizeEmail(email) ? 1 : 0}. Attachments and
-            inline images are unsupported.
+            Estimated messages: {normalizeEmail(email) ? 1 : 0}. Attachments and inline images are
+            unsupported.
           </p>
           <Checkbox
             checked={confirmed}
@@ -291,21 +300,11 @@ function App() {
           />
           <Button
             appearance="primary"
-            disabled={
-              busy ||
-              !draft ||
-              !key ||
-              !confirmed ||
-              !normalizeEmail(email) ||
-              !!batchId
-            }
+            disabled={busy || !draft || !key || !confirmed || !normalizeEmail(email) || !!batchId}
             onClick={() =>
               void action(async () => {
                 if (!draft) return;
-                if (
-                  inOutlook &&
-                  JSON.stringify(await readDraft()) !== JSON.stringify(draft)
-                ) {
+                if (inOutlook && JSON.stringify(await readDraft()) !== JSON.stringify(draft)) {
                   setConfirmed(false);
                   throw new Error(
                     "Draft changed. Prepare and review the updated message before sending.",
@@ -325,62 +324,47 @@ function App() {
               })
             }
           >
-            {config?.localMock
-              ? "Submit simulated message"
-              : "Send via SMTP2GO"}
+            {config?.providerMode === "mock" ? "Submit simulated message" : "Send via SMTP2GO"}
           </Button>
           {busy && <Spinner size="tiny" label="Working…" />}
           {batchId && (
             <div role="status">
               <h3>Durably submitted</h3>
-              <p>
-                You can close Outlook. Your draft remains open and must not be
-                sent again.
-              </p>
+              <p>You can close Outlook. Your draft remains open and must not be sent again.</p>
               <p>
                 Batch <code>{batchId}</code>
               </p>
-              <p>
-                Submission persisted. Processing status:{" "}
-                {status?.state ?? "refresh required"}
-              </p>
+              <p>Submission persisted. Processing status: {status?.state ?? "refresh required"}</p>
               {status && (
                 <>
                   <p>Recipient: {status.recipient.email}</p>
                   <p>
-                    Provider accepted:{" "}
-                    {status.recipient.state === "provider_accepted" ? 1 : 0} ·
+                    Provider accepted: {status.recipient.state === "provider_accepted" ? 1 : 0} ·
                     Delivery: not yet reported
                   </p>
                   <p>{status.recipient.last_error}</p>
-                  <p>
-                    Provider ID: {status.recipient.provider_id ?? "pending"}
-                  </p>
+                  <p>Provider ID: {status.recipient.provider_id ?? "pending"}</p>
                 </>
               )}
               <Button onClick={() => void refreshStatus()} disabled={busy}>
                 Refresh status
               </Button>{" "}
-              <a
-                href="https://app.smtp2go.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a href="https://app.smtp2go.com/" target="_blank" rel="noreferrer">
                 SMTP2GO reports
               </a>
             </div>
           )}
           {key && !batchId && (
             <p className="muted">
-              Tracking key: <code>{key}</code>. Reopening this draft reuses its
-              key; a repeated submission returns its original batch. Changed
-              content with an already used key is blocked.
+              Tracking key: <code>{key}</code>. Reopening this draft reuses its key; a repeated
+              submission returns its original batch. Changed content with an already used key is
+              blocked.
             </p>
           )}
         </section>
         <footer>
-          Accepted for processing does not mean delivered. SMTP2GO is the
-          primary delivery reporting tool.
+          Accepted for processing does not mean delivered. SMTP2GO is the primary delivery reporting
+          tool.
         </footer>
       </main>
     </FluentProvider>

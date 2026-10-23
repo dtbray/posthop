@@ -2,15 +2,15 @@
 
 ## Automated local tests
 
-`pnpm test` runs Vitest. Shared tests cover normalization, plus addresses, CSV BOM/CRLF/quoted fields, Square Customer Directory columns, blank rows, malformed CSV, invalid addresses and duplicate rows. Provider tests use fake HTTPS responses and cover individual envelope/payload, correlation, HTTP 429, 400, 500, suppression-style refusal, malformed response and transport timeout.
+`pnpm test` runs Vitest through the local Vite+ toolchain. Shared tests cover normalization, plus addresses, CSV BOM/CRLF/quoted fields, Square Customer Directory columns, blank rows, malformed CSV, invalid addresses and duplicate rows. Provider tests use fake HTTPS responses and cover individual envelope/payload, correlation, HTTP 429, 400, 500, suppression-style refusal, malformed response and transport timeout.
 
 Integration tests bundle the real Worker with esbuild and run it inside Miniflare with actual emulated D1 and Queue bindings. They cover auth rejection, forged sender, one-recipient enforcement, concurrent duplicate submission, immutable-content conflict, creator isolation, mock processing without browser requests, repeated Queue triggers, scheduled outbox repair and stale-send quarantine. The recovery-only test route exists solely in the test harness, never in the app bundle.
 
-`pnpm test:e2e` runs a Playwright Chromium test of the standalone local pane: CSV correction, preview, durable submission, status and recovered batch identity. Office.js host initialization is stubbed only in this browser simulation; this does not validate Outlook APIs. Install the browser with `pnpm exec playwright install chromium` if needed.
+`pnpm test:e2e` runs seven Playwright Chromium workflows: standalone CSV review/submission, the Office compose callback contract, reopening a submitted draft after pane closure, changed-content blocking, failed property writes, attachment rejection, and clear mock-delivery labeling while real authentication remains required. Office.js is stubbed in browser tests; these test our integration contract and do not replace a real Outlook test. The separate required `browser-tests` CI job runs the same command. It uses its own mock-only Worker configuration and local database under `apps/outlook-addin/tests/worker`, isolating browser tests from the live-integration `.dev.vars` file. Browser automation uses port 8788, leaving the manual integration backend on port 8787. Install the browser with `pnpm exec playwright install chromium` if needed.
 
 Authentication tests verify real RSA-signed JWTs against a mocked Microsoft JWKS endpoint, including altered signature, wrong audience, expiry and authorization-claim rejection.
 
-`pnpm typecheck` validates TypeScript. `pnpm build` builds static assets and performs `wrangler deploy --dry-run` (no resource deployment). `pnpm manifest:validate` checks the XML manifest with Microsoft's validator; local HTTPS reachability requires your own trusted certificate/server.
+`pnpm check` is the static gate: Oxfmt formatting, Oxlint with type-aware promise rules, and TypeScript checking. `pnpm typecheck` remains available for a standalone TypeScript compiler diagnostic. `pnpm verify` runs audit, static checks, unit/integration tests, build, and browser workflows using the same commands as CI. `pnpm build` builds static assets and performs `wrangler deploy --dry-run` (no resource deployment). `pnpm manifest:validate` checks the XML manifest with Microsoft's validator; local HTTPS reachability requires your own trusted certificate/server.
 
 ## Manual local browser smoke test
 
@@ -36,4 +36,4 @@ Bulk partial failures, atomic daily/monthly quotas, complete recipient-list corr
 
 ## Local validation record (2026-10-23)
 
-23 Vitest tests passed; TypeScript checking, static build/Worker dry run, Microsoft XML manifest validation and one Chromium workflow test passed. Test data and mocked provider only. No live Outlook/Entra tenant integration or real SMTP2GO delivery was executed.
+32 Vitest tests passed, including frontend NAA scope/cache/interaction and unsupported-host and standalone-preview and blocked-Office-script checks. Seven Chromium workflows, static checks, static build/Worker dry run, and Microsoft XML manifest validation passed. Test data and mocked provider only. No live Outlook/Entra tenant integration or real SMTP2GO delivery was executed.

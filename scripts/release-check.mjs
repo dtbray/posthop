@@ -9,8 +9,7 @@ export const packagePaths = [
 ];
 export async function checkRelease(tag) {
   const packages = {};
-  for (const path of packagePaths)
-    packages[path] = JSON.parse(await readFile(path, "utf8"));
+  for (const path of packagePaths) packages[path] = JSON.parse(await readFile(path, "utf8"));
   return assertVersions(
     tag,
     packages,

@@ -6,7 +6,4 @@ export function assertVersions(
   manifest: string,
 ): string;
 export function sha256(data: string | Uint8Array): string;
-export function verifyChecksums(
-  checksums: string,
-  files: Record<string, Uint8Array>,
-): void;
+export function verifyChecksums(checksums: string, files: Record<string, Uint8Array>): void;

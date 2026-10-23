@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, lazyPlugins } from "vite-plus";
 import react from "@vitejs/plugin-react";
 import { existsSync, readFileSync } from "node:fs";
 // Fixed, project-local paths: certificate selection cannot traverse arbitrary files.
@@ -6,9 +6,23 @@ const certFile = new URL("../../.certs/localhost.crt", import.meta.url);
 const keyFile = new URL("../../.certs/localhost.key", import.meta.url);
 const hasCertificates = existsSync(certFile) && existsSync(keyFile);
 export default defineConfig({
-  plugins: [react()],
+  plugins: lazyPlugins(() => [react()]),
   server: {
     port: 3000,
+    strictPort: true,
+    fs: {
+      deny: [
+        "**/.env",
+        "**/.env.*",
+        "**/.dev.vars",
+        "**/.dev.vars.*",
+        "**/.certs/**",
+        "**/.azure/**",
+        "**/secrets/**",
+        "**/*.{key,pem,crt,pfx,p12}",
+        "**/.git/**",
+      ],
+    },
     host: "localhost",
     https: hasCertificates
       ? { cert: readFileSync(certFile), key: readFileSync(keyFile) }

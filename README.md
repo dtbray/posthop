@@ -28,11 +28,11 @@ Open source. AGPL3.
 
 An independent Outlook on the web add-in for event instructions sent through SMTP2GO. No BiFrost dependency.
 
-**Current milestone: local, single-recipient proof of concept.** Includes React/Fluent UI pane, supported Office.js draft reads, CSV inspection, Entra NAA integration, immutable D1 submissions, durable queue processing, mock provider, and a server-only SMTP2GO adapter. Live sending is restricted to configured test inboxes. No tenant, DNS, or cloud resources have been changed, and no real email has been sent.
+**Current milestone: local, single-recipient proof of concept.** Includes React/Fluent UI pane, supported Office.js draft reads, CSV inspection, Entra NAA integration, immutable D1 submissions, durable queue processing, mock provider, and a server-only SMTP2GO adapter. Live sending is restricted to configured test inboxes. Mock delivery remains the default. Test-tenant authentication and real SMTP2GO delivery have separate integration gates; production deployment and customer mail remain out of scope for this prototype.
 
 ## Run locally
 
-Requires Node **22.12+** and pnpm **10.34.7** (`corepack enable`, then `corepack prepare pnpm@10.34.7 --activate`, or install that pnpm version).
+Requires Node **22.18+ on the 22.x line** (or 24.11+/26+) and pnpm **10.34.7** (`corepack enable`, then `corepack prepare pnpm@10.34.7 --activate`, or install that pnpm version).
 
 ```sh
 pnpm install --frozen-lockfile
@@ -44,10 +44,10 @@ pnpm dev
 Open http://localhost:8787. Prepare the sample draft, enter a syntactically valid test address, review, and submit. Refresh status: the provider ID starts with `mock-`. No external email request occurs in mock mode. The local token is intentionally public and works only with local configuration, a loopback request hostname, and mock mode. Bind the dev server to loopback; never publish that configuration.
 
 ```sh
-pnpm test
-pnpm typecheck
-pnpm test:e2e     # local Chromium browser workflow
-pnpm build          # static build + Worker dry run; does not deploy
+pnpm check          # Vite+ formatting, type-aware lint, and type checking
+pnpm test           # unit and Worker integration tests
+pnpm test:e2e       # Chromium browser workflows
+pnpm verify         # complete local/CI gate set; no deployment
 pnpm manifest:validate
 ```
 
@@ -67,3 +67,5 @@ Start with [feasibility](docs/feasibility.md), [architecture decision](docs/deci
 Structure follows the specification: `apps/outlook-addin`, `apps/worker`, `packages/shared`, `packages/smtp2go`, `db/migrations`, `docs`. Dependencies are managed at the root to keep this small workspace simple.
 
 Repository maintenance: [security protections](docs/security.md), [security disclosure](SECURITY.md), and [tag-based release flow](docs/releasing.md).
+
+Vite+ is installed locally; no global CLI is required. `pnpm format` applies formatting, and `pnpm lint` runs lint checks alone. See [toolchain decision](docs/decisions/0002-vite-plus-and-test-gates.md).

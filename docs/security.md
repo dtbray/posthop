@@ -12,7 +12,7 @@ External Actions are pinned to full commit hashes, workflow permissions default 
 
 ## Socket GitHub App (optional additional reporting)
 
-The free firewall integration is already part of CI. To add Socket's per-PR supply-chain analysis/dashboard, the repository owner can install [Socket Security](https://github.com/marketplace/socket-security) for **only `dtbray/posthop`** and select a free public-repository plan. The GitHub OAuth token available here cannot install a new third-party GitHub App on the owner's behalf. No Socket API key is needed for the firewall; do not create or paste one into source control.
+The free firewall integration is already part of CI. The owner has installed Socket's GitHub App for per-PR supply-chain analysis/dashboard. For reference, its installation entry point is [Socket Security](https://github.com/marketplace/socket-security) for **only `dtbray/posthop`** and select a free public-repository plan. App permissions and repository access remain managed by the owner. No Socket API key is needed for the firewall; do not create or paste one into source control.
 
 [Socket Action documentation](https://github.com/SocketDev/action) describes the free firewall and optional App. [Socket CI documentation](https://docs.socket.dev/docs/socket-for-github-actions) covers a separate API-key-based integration; it is not used by this repository.
 
