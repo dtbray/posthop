@@ -1,5 +1,5 @@
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
-import { Miniflare } from "miniflare";
+import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 import { build } from "esbuild";
 import { readFile } from "node:fs/promises";
 let mf: Miniflare;
@@ -15,28 +15,30 @@ beforeAll(async () => {
     platform: "browser",
     target: "es2022",
   });
-  mf = new Miniflare({
-    modules: true,
-    script: compiled.outputFiles[0].text,
-    compatibilityDate: "2026-07-01",
-    d1Databases: ["DB"],
-    queueProducers: { DELIVERIES: "delivery" },
-    queueConsumers: { delivery: { maxBatchSize: 1 } },
-    bindings: {
-      APP_ENV: "local",
-      PROVIDER_MODE: "mock",
-      DEV_AUTH_TOKEN: "local-development-only",
-      TENANT_ID: "",
-      API_AUDIENCE: "",
-      CLIENT_ID: "",
-      ALLOWED_OBJECT_IDS: "",
-      SENDER_EMAIL: "sender@example.com",
-      SENDER_NAME: "Event team",
-      REPLY_TO: "reply@example.com",
-      TEST_RECIPIENTS: "",
-      MAX_ATTEMPTS: "3",
-    },
-  });
+  mf = new Miniflare(
+    convertV4MiniflareOptions({
+      modules: true,
+      script: compiled.outputFiles[0].text,
+      compatibilityDate: "2026-07-01",
+      d1Databases: ["DB"],
+      queueProducers: { DELIVERIES: "delivery" },
+      queueConsumers: { delivery: { maxBatchSize: 1 } },
+      bindings: {
+        APP_ENV: "local",
+        PROVIDER_MODE: "mock",
+        DEV_AUTH_TOKEN: "local-development-only",
+        TENANT_ID: "",
+        API_AUDIENCE: "",
+        CLIENT_ID: "",
+        ALLOWED_OBJECT_IDS: "",
+        SENDER_EMAIL: "sender@example.com",
+        SENDER_NAME: "Event team",
+        REPLY_TO: "reply@example.com",
+        TEST_RECIPIENTS: "",
+        MAX_ATTEMPTS: "3",
+      },
+    }),
+  );
   const db = await mf.getD1Database("DB");
   const sql = (
     await readFile("db/migrations/0001_initial.sql", "utf8")
