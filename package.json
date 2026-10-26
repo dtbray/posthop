@@ -46,7 +46,7 @@
     "esbuild": "^0.28.2",
     "miniflare": "5.20261019.2-beta",
     "office-addin-manifest": "^3.0.1",
-    "typescript": "^5.9.0",
+    "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "wrangler": "^4.152.0"
